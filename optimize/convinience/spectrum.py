@@ -73,3 +73,37 @@ def interp_func(x1,y1,x2,y2,x):
     interp1 = interp1d(x1,y1, fill_value='extrapolate', kind='nearest')
     interp2 = interp1d(x2,y2, fill_value='extrapolate', kind='nearest')
     return x, interp1(x) + interp2(x)
+
+
+
+
+def gaussian_profile(centerWavelength = 1545.2, bandWidth = 0.3, band : Band= None, dispersion = 0):
+    c = 299792458
+    spectrum = Spectrum()
+    spectrum.band = copy.deepcopy(band)
+    spectrum.powerdensity = -10*((band.wavelength*1E9 - centerWavelength)/(bandWidth/2.0))**2 * 0.3 # dB
+    centerFreq = c/(centerWavelength*1E-9)/1E12
+    spectrum.phase = (centerWavelength*1E-9)**2/(1*np.pi*c)*(dispersion*1E-2)*((band.frequency-centerFreq)*1E12)**2
+    return spectrum
+
+def compensation(optSpectrum: Spectrum, targetSpectrum: Spectrum, band: Band):
+    tempSpectrum = copy.deepcopy(optSpectrum)
+    tempSpectrum.powerdensity = -tempSpectrum.powerdensity
+    new_spectrum = synthesisSpectrum(tempSpectrum, targetSpectrum, band)
+    # たとえば1542~1550nm帯域で増幅(new_spectrum.powerdensity)しないように、引いとくとか。
+    range_max = np.max(new_spectrum.powerdensity[(1542 < new_spectrum.wavelength) & (new_spectrum.wavelength < 1550)])
+    new_spectrum.powerdensity -= range_max
+    return new_spectrum
+
+def calc_totalPower(optSpectrum: Spectrum, filterSpectrum: Spectrum):
+    # optSpectrumがオリジナルのスペクトラムと仮定して、そこにfilterSpectrum指定されたフィルター適用時の予想パワー[a.u.]単位は不明。まあどうでもいい。
+    # 周波数が一定間隔であることを仮定する。まずかったら変えましょう。
+    band = copy.deepcopy(optSpectrum.band)
+    new_spectrum = synthesisSpectrum(optSpectrum, filterSpectrum, band)
+    power = 10*np.log10(10**(new_spectrum.powerdensity/10).sum())
+    return power
+
+def attenuation(spectrum: Spectrum, atten: int):
+    new_spectrum = copy.deepcopy(spectrum)
+    new_spectrum.powerdensity -= atten
+    return new_spectrum
