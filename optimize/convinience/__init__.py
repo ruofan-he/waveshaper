@@ -4,3 +4,4 @@ from .spectrum import gaussian_profile
 from .spectrum import compensation
 from .spectrum import calc_totalPower
 from .spectrum import attenuation
+from .data_process import data_class
