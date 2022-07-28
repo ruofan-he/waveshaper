@@ -81,7 +81,7 @@ def gaussian_profile(centerWavelength = 1545.2, bandWidth = 0.3, band : Band= No
     c = 299792458
     spectrum = Spectrum()
     spectrum.band = copy.deepcopy(band)
-    spectrum.powerdensity = -10*((band.wavelength*1E9 - centerWavelength)/(bandWidth/2.0))**2 * 0.3 # dB
+    spectrum.powerdensity = -10*((band.wavelength - centerWavelength)/(bandWidth/2.0))**2 * 0.3 # dB
     centerFreq = c/(centerWavelength*1E-9)/1E12
     spectrum.phase = (centerWavelength*1E-9)**2/(1*np.pi*c)*(dispersion*1E-2)*((band.frequency-centerFreq)*1E12)**2
     return spectrum
@@ -100,7 +100,7 @@ def calc_totalPower(optSpectrum: Spectrum, filterSpectrum: Spectrum):
     # 周波数が一定間隔であることを仮定する。まずかったら変えましょう。
     band = copy.deepcopy(optSpectrum.band)
     new_spectrum = synthesisSpectrum(optSpectrum, filterSpectrum, band)
-    power = 10*np.log10(10**(new_spectrum.powerdensity/10).sum())
+    power = 10*np.log10((10**(new_spectrum.powerdensity/10)).sum())
     return power
 
 def attenuation(spectrum: Spectrum, atten: int):
