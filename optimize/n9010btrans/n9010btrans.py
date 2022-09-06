@@ -14,7 +14,7 @@ class N9010BtransData:
         assert channel in [1,2,3,4,5,6]
         trace = None
         with self.rm.open_resource(self.visa_address) as inst:
-            result = inst.query("TRAC? TRACE{channel}")
+            result = inst.query(f"TRAC? TRACE{channel}")
             trace = np.array(list(map(float,result.split(','))))
         return trace
 
